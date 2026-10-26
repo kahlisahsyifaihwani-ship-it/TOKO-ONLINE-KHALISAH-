@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toko Online Khalisah</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#fff5f9;color:#382632}
+header{background:#b94f78;color:white;text-align:center;padding:25px 12px}
+main{max-width:1000px;margin:auto;padding:18px}
+h2{color:#a43e68}
+.produk{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.card,.panel{background:white;padding:12px;border-radius:12px;box-shadow:0 2px 8px #ead7e0}
+.card img{width:100%;height:160px;object-fit:cover;border-radius:8px}
+.harga{font-weight:bold;color:#b94f78}
+button{background:#b94f78;color:white;border:0;border-radius:7px;padding:10px;cursor:pointer}
+.panel{margin-top:22px;padding:16px}
+input,textarea,select{width:100%;padding:11px;margin:6px 0 14px;border:1px solid #dec6d1;border-radius:7px;font:inherit}
+textarea{height:75px}
+.item{padding:10px 0;border-bottom:1px solid #eee}
+.total{font-size:20px;font-weight:bold;color:#a43e68;margin:15px 0}
+footer{text-align:center;padding:20px}
+@media(min-width:650px){.produk{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<header>
+<h1>💄 TOKO ONLINE KHALISAH</h1>
+<p>Beauty Store - Kosmetik Pilihanmu</p>
+</header>
+<main>
+<h2>🛍️ Katalog Produk</h2>
+<div class="produk" id="produk"></div>
+
+<div class="panel">
+<h2>🛒 Keranjang Belanja</h2>
+<div id="keranjang">Keranjang masih kosong.</div>
+<div class="total" id="total">Total: Rp0</div>
+</div>
+
+<div class="panel">
+<h2>📝 Form Pemesanan</h2>
+<label>Nama pembeli</label>
+<input id="nama" placeholder="Masukkan nama kamu">
+<label>Alamat pengiriman</label>
+<textarea id="alamat" placeholder="Masukkan alamat pengiriman"></textarea>
+<label>Metode pembayaran</label>
+<select id="metode">
+<option>Transfer Bank</option>
+<option>QRIS</option>
+<option>COD</option>
+</select>
+<button onclick="checkout()">📲 Pesan Lewat WhatsApp</button>
+</div>
+</main>
+<footer>© 2026 Toko Online Khalisah</footer>
+
+<script>
+const nomorWA="6282363184884";
+const produk=[
+{id:1,nama:"Lip Tint",harga:35000,foto:"https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=500"},
+{id:2,nama:"Cushion",harga:65000,foto:"https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=500"},
+{id:3,nama:"Bedak",harga:25000,foto:"https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=500"},
+{id:4,nama:"Mascara",harga:30000,foto:"https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=500"}
+];
+let cart=[];
+const rp=n=>"Rp"+n.toLocaleString("id-ID");
+
+function tampilProduk(){
+document.getElementById("produk").innerHTML=produk.map(p=>`
+<div class="card">
+<img src="${p.foto}" alt="${p.nama}" onerror="this.src='https://placehold.co/300x200?text=Kosmetik'">
+<h3>${p.nama}</h3>
+<p class="harga">${rp(p.harga)}</p>
+<button onclick="tambah(${p.id})">Tambah ke Keranjang</button>
+</div>`).join("");
+}
+function tambah(id){
+let item=cart.find(x=>x.id===id);
+if(item)item.jumlah++;
+else cart.push({id,jumlah:1});
+tampilCart();
+}
+function ubah(id,n){
+let item=cart.find(x=>x.id===id);
+if(!item)return;
+item.jumlah+=n;
+if(item.jumlah<=0)cart=cart.filter(x=>x.id!==id);
+tampilCart();
+}
+function tampilCart(){
+let el=document.getElementById("keranjang");
+if(!cart.length)el.innerHTML="Keranjang masih kosong.";
+else el.innerHTML=cart.map(x=>{
+let p=produk.find(y=>y.id===x.id);
+return `<div class="item"><b>${p.nama}</b> - ${rp(p.harga)}<br>
+<button onclick="ubah(${p.id},-1)">−</button>
+${x.jumlah}
+<button onclick="ubah(${p.id},1)">+</button>
+Subtotal: ${rp(p.harga*x.jumlah)}</div>`;
+}).join("");
+let total=cart.reduce((s,x)=>s+produk.find(p=>p.id===x.id).harga*x.jumlah,0);
+document.getElementById("total").textContent="Total: "+rp(total);
+}
+function checkout(){
+let nama=document.getElementById("nama").value.trim();
+let alamat=document.getElementById("alamat").value.trim();
+let metode=document.getElementById("metode").value;
+if(!nama)return alert("Nama pembeli wajib diisi!");
+if(!alamat)return alert("Alamat pengiriman wajib diisi!");
+if(!cart.length)return alert("Keranjang masih kosong!");
+let rincian=cart.map(x=>{
+let p=produk.find(y=>y.id===x.id);
+return `${p.nama} x ${x.jumlah} = ${rp(p.harga*x.jumlah)}`;
+}).join("\n");
+let total=cart.reduce((s,x)=>s+produk.find(p=>p.id===x.id).harga*x.jumlah,0);
+let pesan=`PESANAN BARU - TOKO ONLINE KHALISAH\n\nNama: ${nama}\nAlamat: ${alamat}\n\n${rincian}\n\nPembayaran: ${metode}\nTotal: ${rp(total)}`;
+window.open("https://wa.me/"+nomorWA+"?text="+encodeURIComponent(pesan),"_blank");
+}
+tampilProduk();
+tampilCart();
+</script>
+</body>
+  </html>
+  
